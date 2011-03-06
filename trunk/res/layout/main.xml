@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent" 
+                android:layout_height="wrap_content"
+                android:padding="10px" >
+<TextView 
+	android:layout_width="wrap_content" 
+	android:layout_height="wrap_content"  
+	android:id="@+id/textUsername"
+	android:text="Username">
+
+</TextView>
+<EditText 
+	android:layout_height="wrap_content" 
+	android:layout_width="match_parent" 
+	android:id="@+id/editUsername"
+	android:layout_below="@id/textUsername">
+</EditText>
+<TextView 
+	android:layout_width="wrap_content" 
+	android:layout_height="wrap_content" 
+	android:id="@+id/textPassword" 
+	android:text="Password"
+	android:layout_below="@id/editUsername">
+</TextView>
+<EditText 
+	android:layout_height="wrap_content" 
+	android:layout_width="match_parent" 
+	android:id="@+id/editPassword"
+	android:layout_below="@id/textPassword" android:password="true">
+</EditText>
+
+<Button 
+	android:layout_height="wrap_content" 
+	android:id="@+id/buttonSave" 
+	android:text="Save&amp;Exit" 
+	android:onClick="exit" 
+	android:layout_width="wrap_content"
+	android:layout_alignParentRight="true"
+	android:layout_below="@id/editPassword">
+</Button>
+<Button 
+	android:text="Login" 
+	android:id="@+id/buttonLogin" 
+	android:layout_width="wrap_content" 
+	android:layout_height="wrap_content"
+	android:onClick="login"
+	android:layout_toLeftOf="@id/buttonSave"
+	android:layout_below="@id/editPassword">
+</Button>
+<TextView android:id="@+id/textView1" android:layout_width="wrap_content" android:layout_alignParentBottom="true" android:layout_height="wrap_content" android:text="Version "></TextView>
+<TextView android:layout_toRightOf="@+id/textView1" android:id="@+id/textView2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignTop="@+id/textView1" android:layout_alignBottom="@+id/textView1" android:text="@string/app_version"></TextView>
+</RelativeLayout>

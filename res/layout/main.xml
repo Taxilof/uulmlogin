@@ -48,6 +48,10 @@
 	android:layout_toLeftOf="@id/buttonSave"
 	android:layout_below="@id/editPassword">
 </Button>
-<TextView android:id="@+id/textView1" android:layout_width="wrap_content" android:layout_alignParentBottom="true" android:layout_height="wrap_content" android:text="Version "></TextView>
+<TextView android:id="@+id/textView1" 
+android:layout_width="wrap_content" 
+android:layout_alignParentBottom="true" 
+android:layout_height="wrap_content" 
+android:text="uulmlogin.googlecode.com Version "></TextView>
 <TextView android:layout_toRightOf="@+id/textView1" android:id="@+id/textView2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignTop="@+id/textView1" android:layout_alignBottom="@+id/textView1" android:text="@string/app_version"></TextView>
 </RelativeLayout>

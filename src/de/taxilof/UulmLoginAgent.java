@@ -60,7 +60,7 @@ public class UulmLoginAgent  {
         }
         // try to login via GET Request
     	try {
-    		HttpGet get = new HttpGet(String.format("%s?username=%s&password=%s", context.getString(R.string.capo_uri),username, password));
+    		HttpGet get = new HttpGet(String.format("%s?username=%s&password=%s&login=Anmelden", context.getString(R.string.capo_uri),username, password));
     		DefaultHttpClient client = new DefaultHttpClient();
     		client.getParams().setParameter(CoreProtocolPNames.USER_AGENT, "Mozilla/5.0 (Linux; U; Android; uulmLogin " + context.getString(R.string.app_version) + ")");
 			HttpResponse response = client.execute(get);
@@ -73,7 +73,7 @@ public class UulmLoginAgent  {
     	// should be loged in now, but we should be sure, so check it now
     	String notifyString = "bla";
 		try {
-			InetAddress uniUlm = InetAddress.getByName("134.60.1.25");	// thats uni-ulm.de
+			InetAddress uniUlm = InetAddress.getByName("134.60.1.1");	// 
         	if (uniUlm.isReachable(200)) {
         		notifyString ="Login to welcome successful ";
         		Log.d("uulmLogin:", "Login successful");

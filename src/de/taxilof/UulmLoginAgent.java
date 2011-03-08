@@ -9,12 +9,18 @@
 
 package de.taxilof;
 
-import java.net.InetAddress;
+
+import java.net.URI;
+
+import javax.net.ssl.SSLException;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolException;
+import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.protocol.HttpContext;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -46,48 +52,67 @@ public class UulmLoginAgent  {
 	 * perform the Login & necessary Checks
 	 */
     public void login() {
+    	// setting up my http client
+		DefaultHttpClient client = new DefaultHttpClient();
+		client.getParams().setParameter(CoreProtocolPNames.USER_AGENT, "Mozilla/5.0 (Linux; U; Android; uulmLogin " + context.getString(R.string.app_version) + ")");
+		// disable redirects in client, used from isLoggedIn method
+		client.setRedirectHandler(new RedirectHandler() {
+			public URI getLocationURI(HttpResponse arg0, HttpContext arg1)
+					throws ProtocolException {
+				return null;
+			}
+			public boolean isRedirectRequested(HttpResponse arg0,
+					HttpContext arg1) {
+				return false;
+			}
+	    });
+		
+ 	
+    	// get IP
     	String ipAddress = getIp();
     	if (ipAddress == null) {
-    		Log.w("uulmLogin:", "could not get IP Address, aborting");
+    		Log.w("uulmLogin:", "Could not get IP Address, aborting.");
     		return; 
     	} 
-        Log.d("uulmLogin:", "got IP: " + ipAddress + ", trying to log in");
+        Log.d("uulmLogin:", "Got IP: " + ipAddress + ", starting Login Process.");
    
-        // check ip prefix is wrong
+        // check if IP prefix is wrong
         if (!(ipAddress.startsWith(context.getString(R.string.ip_prefix)))) {
-        	Log.w("uulmLogin:", "wrong ip prefix");
+        	Log.d("uulmLogin:", "Wrong IP Prefix.");
         	return;
         }
+                
+        // check if we are already logged in
+    	if (isLoggedIn(client)) { // 1000ms should be enough..
+    		Log.d("uulmLogin", "Already logged in, aborting.");
+    		return;
+    	}
+
         // try to login via GET Request
     	try {
+    		// login
     		HttpGet get = new HttpGet(String.format("%s?username=%s&password=%s&login=Anmelden", context.getString(R.string.capo_uri),username, password));
-    		DefaultHttpClient client = new DefaultHttpClient();
-    		client.getParams().setParameter(CoreProtocolPNames.USER_AGENT, "Mozilla/5.0 (Linux; U; Android; uulmLogin " + context.getString(R.string.app_version) + ")");
+			@SuppressWarnings("unused")
 			HttpResponse response = client.execute(get);
-    		Log.v("uulmLogin","Login done, HttpResponse:"+ HttpHelper.request(response));
+    		//Log.d("uulmLogin","Login done, HttpResponse:"+ HttpHelper.request(response));
+    	} catch (SSLException ex) {
+    		Log.w("uulmLogin","SSL Error while sending Login Request: "+ex.toString());
+    		notify("Login to Welcome failed", "SSL Error: could not verify Host", true);
+    		return;
     	} catch (Exception e)	{
-    		Log.w("uulmLogin","Error in GET Request:"+e.toString());
+    		Log.w("uulmLogin","Error while sending Login Request: "+e.toString());
+    		notify("Login to Welcome failed", "Error while sending Login Request.", true);
     		return;
     	}  
         	
-    	// should be loged in now, but we should be sure, so check it now
-    	String notifyString = "bla";
-		try {
-			InetAddress uniUlm = InetAddress.getByName("134.60.1.1");	// 
-        	if (uniUlm.isReachable(200)) {
-        		notifyString ="Login to welcome successful ";
-        		Log.d("uulmLogin:", "Login successful");
-        	} else {
-        		notifyString ="Login to welcome failed ";
-        		Log.w("uulmLogin:", "Login failed");
-        	}
-		} catch (Exception e) {
-			notifyString = "Error while checking loginstate";
-			Log.w("uulmLogin:", "Login failed?");
-		}
-		
-		// inform the user what 
-		notify(notifyString, "Your IP: "+ipAddress);
+    	// should be logged in now, but we check it now, just to be sure
+    	if (isLoggedIn(client)) {
+    		notify("Login to welcome successful.", "Your IP: "+ipAddress, false);
+    		Log.d("uulmLogin", "Login successful.");
+    	} else {
+    		notify("Login to welcome failed.", "Maybe wrong Username/Password?", true);
+    		Log.w("uulmLogin", "Login failed, wrong user/pass?");
+    	}
     }
     
 	/**
@@ -110,13 +135,35 @@ public class UulmLoginAgent  {
 	/**
 	 * notify the User in Statusbar
 	 */
-	private void notify(String subject, String message) {
+	private void notify(String subject, String message, boolean errorIcon) {
 		// build notification with notifyString
+		Notification notifyDetails;
         mNotificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-		Notification notifyDetails = new Notification(R.drawable.icon,subject,System.currentTimeMillis());
+        if (errorIcon) {
+        	notifyDetails = new Notification(R.drawable.icon_red,subject,System.currentTimeMillis());
+        } else {
+        	notifyDetails = new Notification(R.drawable.icon,subject,System.currentTimeMillis());
+        }
 		PendingIntent myIntent = PendingIntent.getActivity(context, 0, new Intent(), 0);
 		notifyDetails.setLatestEventInfo(context, subject, message, myIntent);
 		notifyDetails.flags |= Notification.FLAG_AUTO_CANCEL;
 		mNotificationManager.notify(SIMPLE_NOTFICATION_ID, notifyDetails);		
 	}    
+	/**
+	 * check if we are logged in
+	 */
+	private boolean isLoggedIn(DefaultHttpClient client) {
+		HttpResponse response;
+		try {
+			response = client.execute(new HttpGet("http://service.fs-et.de/uulmlogin/"));
+			if (response.containsHeader("Location")) { 
+				return false;
+			} else {
+				return true;
+			}  
+		} catch (Exception e1) {
+			Log.d("uulmLogin","Error in isLoggedIn"+e1.toString());
+				return false;
+		}
+	}
 }

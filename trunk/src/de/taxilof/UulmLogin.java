@@ -61,7 +61,7 @@ public class UulmLogin extends Activity {
     }
     // used by the login button
     public void login(View view) {
-    	Log.d("uulmlogin","got Login Event,starting loginAgent");
+    	Log.d("uulmLogin","got Login Event,starting loginAgent");
     	savePrefs();
     	UulmLoginAgent loginAgent = new UulmLoginAgent (this.getBaseContext());
     	try {

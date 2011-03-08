@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">uulmLogin</string>
-    <string name="app_version">0.4</string>
+    <string name="app_version">0.5</string>
     <string name="capo_uri">https://welcome.uni-ulm.de/capo/</string>
     <string name="ip_prefix">134.60.</string>
 </resources>

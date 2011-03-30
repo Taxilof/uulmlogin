@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="fill_parent" 
                 android:layout_height="wrap_content"
-                android:padding="10px" >
+                android:padding="10px" android:layout_width="wrap_content">
 <TextView 
 	android:layout_width="wrap_content" 
 	android:layout_height="wrap_content"  
@@ -37,7 +36,8 @@
 	android:onClick="exit" 
 	android:layout_width="wrap_content"
 	android:layout_alignParentRight="true"
-	android:layout_below="@id/editPassword">
+
+	android:layout_above="@+id/textView1">
 </Button>
 <Button 
 	android:text="Login" 
@@ -46,8 +46,10 @@
 	android:layout_height="wrap_content"
 	android:onClick="login"
 	android:layout_toLeftOf="@id/buttonSave"
-	android:layout_below="@id/editPassword">
+	android:layout_alignTop="@id/buttonSave">
 </Button>
+<CheckBox android:text="notify on success" android:layout_below="@id/editPassword" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/checkSuccess"></CheckBox>
+<CheckBox android:text="notify on failure" android:layout_below="@id/checkSuccess" android:layout_height="wrap_content" android:id="@+id/checkFailure" android:layout_width="wrap_content" android:layout_alignLeft="@+id/checkBox1" android:layout_alignRight="@+id/checkBox1"></CheckBox>
 <TextView android:id="@+id/textView1" 
 android:layout_width="wrap_content" 
 android:layout_alignParentBottom="true" 

@@ -25,15 +25,15 @@ public class UulmLoginBroadcastReceiver extends BroadcastReceiver {
 		if (info != null) {
 			if (info.getState().equals(NetworkInfo.State.CONNECTED)){
 			    // wifi connection available
-				Log.d("uulmLogin:", "wifi connection available");
+				Log.d("uulmLogin", "wifi connection available");
 				UulmLoginAgent agent = new UulmLoginAgent(context);
 				agent.login();
 
 			} else {
-				Log.d("uulmLogin:", "no connection");
+				Log.d("uulmLogin", "no connection available");
 			}
 		} else {
-			Log.d("uulmLogin:", "could not get networkinfo");
+			Log.d("uulmLogin", "could not get networkinfo");
 		}
 	}
 }

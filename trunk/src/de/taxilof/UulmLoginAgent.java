@@ -39,6 +39,8 @@ public class UulmLoginAgent  {
 	private static final String PREFS_NAME = "UulmLoginPrefs";
 	String password;
 	String username;
+    boolean notifySuccess;
+    boolean notifyFailure;	
 	Context context;
 	
 	public  UulmLoginAgent(Context contextIn) {
@@ -46,7 +48,9 @@ public class UulmLoginAgent  {
         // read preferences
         SharedPreferences settings = context.getSharedPreferences(PREFS_NAME, 0);
         username = settings.getString("username", "");
-        password = settings.getString("password", "");		
+        password = settings.getString("password", "");	
+        notifySuccess = settings.getBoolean("checkSuccess", true);
+        notifyFailure = settings.getBoolean("checkFailure", true);        
 	}
 	/**
 	 * perform the Login & necessary Checks
@@ -71,19 +75,26 @@ public class UulmLoginAgent  {
     	// get IP
     	String ipAddress = getIp();
     	if (ipAddress == null) {
-    		Log.w("uulmLogin:", "Could not get IP Address, aborting.");
+    		Log.d("uulmLogin", "Could not get IP Address, aborting.");
     		return; 
     	} 
-        Log.d("uulmLogin:", "Got IP: " + ipAddress + ", starting Login Process.");
+        Log.d("uulmLogin", "Got IP: " + ipAddress + ", continuing.");
    
         // check if IP prefix is wrong
         if (!(ipAddress.startsWith(context.getString(R.string.ip_prefix)))) {
-        	Log.d("uulmLogin:", "Wrong IP Prefix.");
+        	Log.d("uulmLogin", "Wrong IP Prefix.");
         	return;
         }
-                
+
+        // check the SSID
+        String ssid = getSsid();
+        if (!(context.getString(R.string.ssid).equals(ssid))) {
+        	Log.d("uulmLogin", "Wrong SSID, aborting.");
+        	return;
+        }
+        	
         // check if we are already logged in
-    	if (isLoggedIn(client)) { // 1000ms should be enough..
+    	if (isLoggedIn(client,5)) { 
     		Log.d("uulmLogin", "Already logged in, aborting.");
     		return;
     	}
@@ -97,20 +108,20 @@ public class UulmLoginAgent  {
     		//Log.d("uulmLogin","Login done, HttpResponse:"+ HttpHelper.request(response));
     	} catch (SSLException ex) {
     		Log.w("uulmLogin","SSL Error while sending Login Request: "+ex.toString());
-    		notify("Login to Welcome failed", "SSL Error: could not verify Host", true);
+    		if (notifyFailure) notify("Login to Welcome failed", "SSL Error: could not verify Host", true);
     		return;
     	} catch (Exception e)	{
     		Log.w("uulmLogin","Error while sending Login Request: "+e.toString());
-    		notify("Login to Welcome failed", "Error while sending Login Request.", true);
+    		if (notifyFailure) notify("Login to Welcome failed", "Error while sending Login Request.", true);
     		return;
     	}  
         	
     	// should be logged in now, but we check it now, just to be sure
-    	if (isLoggedIn(client)) {
-    		notify("Login to welcome successful.", "Your IP: "+ipAddress, false);
+    	if (isLoggedIn(client, 2)) {
+    		if (notifySuccess) notify("Login to welcome successful.", "Your IP: "+ipAddress, false);
     		Log.d("uulmLogin", "Login successful.");
     	} else {
-    		notify("Login to welcome failed.", "Maybe wrong Username/Password?", true);
+    		if (notifyFailure) notify("Login to welcome failed.", "Maybe wrong Username/Password?", true);
     		Log.w("uulmLogin", "Login failed, wrong user/pass?");
     	}
     }
@@ -133,6 +144,19 @@ public class UulmLoginAgent  {
         return ipAddress;
 	}
 	/**
+	 * fetch the ssid of the wifi network 
+	 * @return ip
+	 */
+	private String getSsid() {
+		WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+		String ssid = null;
+        if (wifiInfo != null) {
+        	ssid = wifiInfo.getSSID();
+        }	
+        return ssid.replace("\"", ""); 	// because .getSSID() sucks...
+	}	
+	/**
 	 * notify the User in Statusbar
 	 */
 	private void notify(String subject, String message, boolean errorIcon) {
@@ -152,7 +176,12 @@ public class UulmLoginAgent  {
 	/**
 	 * check if we are logged in
 	 */
-	private boolean isLoggedIn(DefaultHttpClient client) {
+	private boolean isLoggedIn(DefaultHttpClient client, int depth) {
+		// don't try it anymore
+		if (depth == 0 ) {
+			Log.d("uulmLogin","checked LoginState five times, aborting check");
+			return false;
+		}
 		HttpResponse response;
 		try {
 			response = client.execute(new HttpGet("http://service.fs-et.de/uulmlogin/"));
@@ -162,8 +191,12 @@ public class UulmLoginAgent  {
 				return true;
 			}  
 		} catch (Exception e1) {
-			Log.d("uulmLogin","Error in isLoggedIn"+e1.toString());
-				return false;
+			Log.d("uulmLogin","Error in isLoggedIn "+e1.toString());
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+			}
+			return isLoggedIn(client, depth-1);
 		}
 	}
 }

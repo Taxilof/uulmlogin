@@ -14,6 +14,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 
 public class UulmLogin extends Activity {
@@ -29,11 +30,17 @@ public class UulmLogin extends Activity {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         String username = settings.getString("username", "");
         String password = settings.getString("password", "");
-        // fill in textboxes
+        boolean notifySuccess = settings.getBoolean("checkSuccess", true);
+        boolean notifyFailure = settings.getBoolean("checkFailure", true);
+        // fill in the stuff
         EditText editUsername = (EditText) findViewById(R.id.editUsername);
         EditText editPassword = (EditText) findViewById(R.id.editPassword);
         editUsername.setText(username);
         editPassword.setText(password);   
+        CheckBox checkSuccess = (CheckBox) findViewById(R.id.checkSuccess);
+        CheckBox checkFailure = (CheckBox) findViewById(R.id.checkFailure);
+        checkSuccess.setChecked(notifySuccess);
+        checkFailure.setChecked(notifyFailure);
     }
     
     private void savePrefs() {
@@ -42,11 +49,15 @@ public class UulmLogin extends Activity {
     	EditText editPassword = (EditText) findViewById(R.id.editPassword);
     	String username = editUsername.getText().toString();
     	String password = editPassword.getText().toString();
+        CheckBox checkSuccess = (CheckBox) findViewById(R.id.checkSuccess);
+        CheckBox checkFailure = (CheckBox) findViewById(R.id.checkFailure);
     	// save preferences
     	SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
     	SharedPreferences.Editor editor = settings.edit();
     	editor.putString("username", username);
     	editor.putString("password", password);
+    	editor.putBoolean("checkSuccess", checkSuccess.isChecked());
+    	editor.putBoolean("checkFailure", checkFailure.isChecked());
     	editor.commit();   	
     }
     
@@ -61,7 +72,7 @@ public class UulmLogin extends Activity {
     }
     // used by the login button
     public void login(View view) {
-    	Log.d("uulmLogin","got Login Event,starting loginAgent");
+    	Log.d("uulmLogin","got LoginRequest, starting loginAgent");
     	savePrefs();
     	UulmLoginAgent loginAgent = new UulmLoginAgent (this.getBaseContext());
     	try {
